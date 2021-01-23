@@ -3,7 +3,8 @@ from flask import (
     render_template,
     request,
     redirect,
-    url_for
+    url_for,
+    flash
 )
 from flask_mysqldb import MySQL
 app = Flask(__name__)
@@ -13,9 +14,15 @@ app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'contacts'
 mysql = MySQL(app)
 
+app.secret_key = 'superr'
+
 @app.route('/')
 def Index():
-    return render_template('index.html')
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT fullname,email,phone FROM users')
+    users = cur.fetchall()
+    print(users)
+    return render_template('index.html',users=users)
 
 @app.route('/add_contact',methods=['POST'])
 def add_contact():
@@ -27,6 +34,8 @@ def add_contact():
         cur.execute('INSERT INTO users(fullname,phone,email) VALUES (%s,%s,%s)',
                     (fullname,phone,email))
         mysql.connection.commit()
+        flash("El contacto ha sido agregado","info")
+        cur.close()
         return redirect(url_for('Index'))
 
 @app.route('/edit')
