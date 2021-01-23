@@ -19,7 +19,7 @@ app.secret_key = 'superr'
 @app.route('/')
 def Index():
     cur = mysql.connection.cursor()
-    cur.execute('SELECT fullname,email,phone FROM users')
+    cur.execute('SELECT * FROM users')
     users = cur.fetchall()
     print(users)
     return render_template('index.html',users=users)
@@ -38,7 +38,7 @@ def add_contact():
         cur.close()
         return redirect(url_for('Index'))
 
-@app.route('/edit')
+@app.route('/update/<int:user_id>')
 def edit():
     return 'add contact'
 
