@@ -21,7 +21,6 @@ def Index():
     cur = mysql.connection.cursor()
     cur.execute('SELECT * FROM users')
     users = cur.fetchall()
-    print(users)
     return render_template('index.html',users=users)
 
 @app.route('/add_contact',methods=['POST'])
@@ -38,13 +37,42 @@ def add_contact():
         cur.close()
         return redirect(url_for('Index'))
 
-@app.route('/update/<int:user_id>')
-def edit():
-    return 'add contact'
+@app.route('/update/<user_id>',methods=['POST'])
+def edit(user_id):
+    if request.method == 'POST':
+        fullname = request.form['fullname']
+        phone = request.form['phone']
+        email = request.form['email']
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            UPDATE users 
+            SET fullname = %s,
+                email = %s,
+                phone = %s
+            WHERE id = %s
+        """,(fullname,email,phone,user_id))
+        mysql.connection.commit()
+        flash("El contacto ha sido actualizado","info")
+        cur.close()
+        return redirect(url_for('Index'))
 
-@app.route('/delete')
-def delete():
-    return 'add contact'
+@app.route('/update/<id>')
+def get_contact(id):
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM users WHERE id = %s',(id))
+    u_user = cur.fetchall()
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT * FROM users')
+    users = cur.fetchall()
+    return render_template('index.html', u_user=u_user,users=users)
+
+@app.route('/delete/<id>')
+def delete(id):
+    cur = mysql.connection.cursor()
+    cur.execute('DELETE FROM users WHERE id = {0}'.format(id))
+    mysql.connection.commit()
+    flash("Contacto eliminado satisfactoriamente")
+    return redirect(url_for('Index'))
 
 if __name__ == '__main__':
     app.run(port = 3000,debug=True)
